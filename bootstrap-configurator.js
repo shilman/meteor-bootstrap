@@ -22,13 +22,13 @@ var handler = function (compileStep, isLiterate) {
 
   // read the configuration of the project
   var userConfiguration = compileStep.read().toString('utf8');
-  
+
   // if empty (and only then) write distributed configuration
   if (userConfiguration === '') {
     userConfiguration = distributedConfiguration;
     fs.writeFileSync(jsonPath, userConfiguration);
   }
-  
+
   // parse configuration
   try {
     userConfiguration = JSON.parse(userConfiguration);
@@ -39,17 +39,17 @@ var handler = function (compileStep, isLiterate) {
     });
     return;
   }
-  
+
   // configuration
   var moduleConfiguration = userConfiguration.modules || {};
-  
+
   // these variables contain the files that need to be included
   var js = {}; // set of required js files
   var less = {}; // set of required less files
-  
+
   // read module configuration to find out which js/less files are needed
   var allModulesOk = _.every(moduleConfiguration, function (enabled, module) {
-    
+
     var moduleDefinition = moduleDefinitions[module];
     if (moduleDefinition == null) {
       compileStep.error({
@@ -58,25 +58,25 @@ var handler = function (compileStep, isLiterate) {
       });
       return false; // break
     }
-    
+
     if (! enabled) {
       return true; // continue
     }
-    
+
     _.each(moduleDefinition.less || [], function (file) {
       less[file] = file;
     });
     _.each(moduleDefinition.js || [], function (file) {
       js[file] = file;
     });
-    
+
     return true;
   });
-  
+
   if (! allModulesOk) {
     return;
   }
-  
+
   // add javascripts
   for (var jsPath in js) {
     var file = getAsset(jsPath);
@@ -87,12 +87,13 @@ var handler = function (compileStep, isLiterate) {
       bare: true // they are already wrapped (tiny optimisation)
     });
   }
-  
+
   // filenames
-  var mixinsLessFile = jsonPath.replace(/json$/i, 'mixins.import.less')
-  var importLessFile = jsonPath.replace(/json$/i, 'import.less');
-  var outputLessFile = jsonPath.replace(/json$/i, 'less');
+  var mixinsLessFile = jsonPath.replace(/\.json$/i, '_mixins.import.less')
+  var importLessFile = jsonPath.replace(/\.json$/i, '_variables.import.less');
+  var outputLessFile = jsonPath.replace(/\.json$/i, '.import.less');
   var gitignoreFile = path.join(path.dirname(jsonPath), '.gitignore');
+  console.log(mixinsLessFile, importLessFile, outputLessFile)
 
   createLessFile(mixinsLessFile, [
     "// THIS FILE IS GENERATED, DO NOT MODIFY IT!",
@@ -101,7 +102,7 @@ var handler = function (compileStep, isLiterate) {
     "// However: you should @import \"" + path.basename(importLessFile) + "\" instead of this",
     getLessContent('bootstrap/less/mixins.less')
   ]);
-   
+
   // create the file that can be modified
   if (! fs.existsSync(importLessFile)) {
     createLessFile(importLessFile, [
@@ -114,7 +115,7 @@ var handler = function (compileStep, isLiterate) {
       getLessContent('bootstrap/less/variables.less')
     ]);
   }
-  
+
   // create the file that finally includes bootstrap
   var bootstrapContent = [
     "// THIS FILE IS GENERATED, DO NOT MODIFY IT!",
@@ -131,7 +132,7 @@ var handler = function (compileStep, isLiterate) {
     bootstrapContent.push(getLessContent('' + lessPath));
   });
   createLessFile(outputLessFile, bootstrapContent);
-  
+
   if (! fs.existsSync(gitignoreFile)) {
     var content = [
       path.basename(mixinsLessFile),
