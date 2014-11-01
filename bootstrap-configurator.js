@@ -93,7 +93,7 @@ var handler = function (compileStep, isLiterate) {
   var importLessFile = jsonPath.replace(/\.json$/i, '_variables.import.less');
   var outputLessFile = jsonPath.replace(/\.json$/i, '.import.less');
   var gitignoreFile = path.join(path.dirname(jsonPath), '.gitignore');
-  console.log(mixinsLessFile, importLessFile, outputLessFile)
+  //console.log(mixinsLessFile, importLessFile, outputLessFile)
 
   createLessFile(mixinsLessFile, [
     "// THIS FILE IS GENERATED, DO NOT MODIFY IT!",
