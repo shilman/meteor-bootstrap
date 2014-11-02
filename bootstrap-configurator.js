@@ -49,10 +49,7 @@ var handler = function (compileStep, isLiterate) {
     if(!upToDate) console.log(outputFile, 'out of date');
     return upToDate;
   });
-  if (upToDate) {
-    //console.log('Bootstrap configuration up-to-date');
-    return;
-  } else {
+  if (!upToDate) {
     console.log('Updating bootstrap configuration');
   }
 
