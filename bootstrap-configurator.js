@@ -38,13 +38,19 @@ var handler = function (compileStep, isLiterate) {
   var configModified = new Date(fs.statSync(jsonPath).mtime);
   var outputFiles = [mixinsLessFile, variablesLessFile, outputLessFile, gitignoreFile]
   var upToDate = _.all(outputFiles, function(outputFile) {
-    var outputStats = fs.statSync(outputFile);
-    var outputModified = outputStats && new Date(outputStats.mtime);
-    var isModified = outputModified && outputModified >= configModified;
-    return isModified;
+    try {
+      var outputStats =  fs.statSync(outputFile);
+    } catch(e) {
+      console.log(outputFile, 'not found');
+      return false;
+    }
+    var outputModified = new Date(outputStats.mtime);
+    var upToDate = outputModified >= configModified;
+    if(!upToDate) console.log(outputFile, 'out of date');
+    return upToDate;
   });
   if (upToDate) {
-    console.log('Bootstrap configuration up-to-date');
+    //console.log('Bootstrap configuration up-to-date');
     return;
   } else {
     console.log('Updating bootstrap configuration');
