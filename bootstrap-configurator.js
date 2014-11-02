@@ -29,6 +29,28 @@ var handler = function (compileStep, isLiterate) {
     fs.writeFileSync(jsonPath, userConfiguration);
   }
 
+  // output filenames
+  var mixinsLessFile = path.join(path.dirname(jsonPath), 'mixins.import.less');
+  var variablesLessFile = path.join(path.dirname(jsonPath), 'variables.import.less');
+  var outputLessFile = path.join(path.dirname(jsonPath), 'bootstrap.import.less');
+  var gitignoreFile = path.join(path.dirname(jsonPath), '.gitignore');
+
+  var configModified = new Date(fs.statSync(jsonPath).mtime);
+  var outputFiles = [mixinsLessFile, variablesLessFile, outputLessFile, gitignoreFile]
+  var upToDate = _.all(outputFiles, function(outputFile) {
+    var outputStats = fs.statSync(outputFile);
+    var outputModified = outputStats && new Date(outputStats.mtime);
+    var isModified = outputModified && outputModified >= configModified;
+    return isModified;
+  });
+  if (upToDate) {
+    console.log('Bootstrap configuration up-to-date');
+    return;
+  } else {
+    console.log('Updating bootstrap configuration');
+  }
+
+
   // parse configuration
   try {
     userConfiguration = JSON.parse(userConfiguration);
@@ -88,24 +110,17 @@ var handler = function (compileStep, isLiterate) {
     });
   }
 
-  // filenames
-  var mixinsLessFile = jsonPath.replace(/\.json$/i, '_mixins.import.less')
-  var importLessFile = jsonPath.replace(/\.json$/i, '_variables.import.less');
-  var outputLessFile = jsonPath.replace(/\.json$/i, '.import.less');
-  var gitignoreFile = path.join(path.dirname(jsonPath), '.gitignore');
-  //console.log(mixinsLessFile, importLessFile, outputLessFile)
-
   createLessFile(mixinsLessFile, [
     "// THIS FILE IS GENERATED, DO NOT MODIFY IT!",
     "// These are the mixins bootstrap provides",
     "// They are included here so you can use them in your less files too,",
-    "// However: you should @import \"" + path.basename(importLessFile) + "\" instead of this",
+    "// However: you should @import \"" + path.basename(variablesLessFile) + "\" instead of this",
     getLessContent('bootstrap/less/mixins.less')
   ]);
 
   // create the file that can be modified
-  if (! fs.existsSync(importLessFile)) {
-    createLessFile(importLessFile, [
+  if (! fs.existsSync(variablesLessFile)) {
+    createLessFile(variablesLessFile, [
       "// This File is for you to modify!",
       "// It won't be overwritten as long as it exists.",
       "// You may include this file into your less files to benefit from",
@@ -125,7 +140,7 @@ var handler = function (compileStep, isLiterate) {
     "// If it throws errors your bootstrap.import.less is probably invalid.",
     "// To fix that remove that file and then recover your changes.",
     '',
-    '@import "' + path.basename(importLessFile) + '";',
+    '@import "' + path.basename(variablesLessFile) + '";',
     '@icon-font-path: "/packages/nemo64_bootstrap-data/bootstrap/fonts/";'
   ];
   _.each(less, function (lessPath) {
