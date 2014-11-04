@@ -1,5 +1,5 @@
 Package.describe({
-  name: "shilman80:meteor-bootstrap",
+  name: "shilman80:bootstrap",
   summary: "Highly configurable bootstrap integration.",
   version: "3.2.3",
   git: "https://github.com/Nemo64/meteor-bootstrap"
